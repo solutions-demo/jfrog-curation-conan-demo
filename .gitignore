@@ -1,0 +1,11 @@
+build/
+demo-logs/
+CMakeUserPresets.json
+cmake-build-*/
+.cache/
+*.pyc
+__pycache__/
+/env.local.sh
+/work/
+/legacy/
+/.vscode/

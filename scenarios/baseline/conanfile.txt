@@ -1,0 +1,16 @@
+[requires]
+# MIT. Catalog publishedAt 2024-01-05. No catalog CVEs on 2026-10-09.
+fmt/10.2.1
+# MIT. Catalog publishedAt 2023-11-29. No catalog CVEs on 2026-10-09.
+nlohmann_json/3.11.3
+# MIT. Catalog publishedAt 2024-06-30. No catalog CVEs on 2026-10-09.
+magic_enum/0.9.6
+
+[tool_requires]
+cmake/3.30.5
+
+[options]
+fmt/*:header_only=True
+
+[layout]
+cmake_layout
