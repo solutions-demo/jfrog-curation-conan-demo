@@ -5,13 +5,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
-find_package(fmt CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(magic_enum CONFIG REQUIRED)
 
 add_executable(curation_demo src/main.cpp)
 target_link_libraries(curation_demo PRIVATE
-    fmt::fmt-header-only
+    spdlog::spdlog_header_only
     nlohmann_json::nlohmann_json
     magic_enum::magic_enum)
 

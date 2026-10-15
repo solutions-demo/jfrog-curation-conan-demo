@@ -1,5 +1,5 @@
 [requires]
-fmt/10.2.1
+spdlog/1.13.0
 nlohmann_json/3.11.3
 magic_enum/0.9.6
 # Recipe license: CeCILL V2. Catalog expression: CECILL-2.0.
@@ -11,6 +11,7 @@ cimg/3.3.2
 cmake/3.30.5
 
 [options]
+spdlog/*:header_only=True
 fmt/*:header_only=True
 
 [layout]

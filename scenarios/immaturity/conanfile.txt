@@ -1,5 +1,5 @@
 [requires]
-fmt/10.2.1
+spdlog/1.13.0
 nlohmann_json/3.11.3
 magic_enum/0.9.6
 # Released 2026-09-11; blocked by the 88-day policy on 2026-10-09.
@@ -9,6 +9,7 @@ cpp-httplib/0.56.0
 cmake/3.30.5
 
 [options]
+spdlog/*:header_only=True
 fmt/*:header_only=True
 
 [layout]

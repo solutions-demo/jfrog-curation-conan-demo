@@ -16,8 +16,9 @@ class JfrogCurationDemo(ConanFile):
     }
 
     def configure(self):
-        # Header-only fmt avoids platform-specific binaries and source builds.
-        # A compiled fmt would miss that binary and then download sources from GitHub.
+        # Header-only spdlog brings in header-only fmt transitively.
+        # This avoids platform-specific binaries and source builds.
+        self.options["spdlog/*"].header_only = True
         self.options["fmt/*"].header_only = True
 
     def layout(self):

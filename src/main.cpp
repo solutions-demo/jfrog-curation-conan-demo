@@ -1,4 +1,5 @@
-#include <fmt/core.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/version.h>
 #include <magic_enum.hpp>
 #include <nlohmann/json.hpp>
 
@@ -28,7 +29,7 @@ int main() {
     const std::string status{magic_enum::enum_name(DemoStatus::Complete)};
     nlohmann::json body = {
         {"customer", "JFrog Curation demo"},
-        {"fmt", fmt::format("{}.{}.{}", FMT_VERSION / 10000, (FMT_VERSION / 100) % 100, FMT_VERSION % 100)},
+        {"spdlog", std::to_string(SPDLOG_VER_MAJOR) + "." + std::to_string(SPDLOG_VER_MINOR) + "." + std::to_string(SPDLOG_VER_PATCH)},
         {"message", "JSON processed successfully"},
     };
 
@@ -55,6 +56,7 @@ int main() {
     body["httplib_path"] = request.path;
 #endif
 
-    std::cout << fmt::format("JFrog Curation demo [{}]: {}\n", status, body.dump());
+    spdlog::set_pattern("%v");
+    spdlog::info("JFrog Curation demo [{}]: {}", status, body.dump());
     return 0;
 }
