@@ -6,12 +6,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
 find_package(spdlog CONFIG REQUIRED)
+find_package(xtensor CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(magic_enum CONFIG REQUIRED)
 
 add_executable(curation_demo src/main.cpp)
 target_link_libraries(curation_demo PRIVATE
     spdlog::spdlog_header_only
+    xtensor
     nlohmann_json::nlohmann_json
     magic_enum::magic_enum)
 

@@ -1,8 +1,8 @@
 [requires]
 # MIT. Pulls fmt/10.2.1 transitively with header-only options.
 spdlog/1.13.0
-# MIT. Catalog publishedAt 2023-11-29. No catalog CVEs on 2026-10-09.
-nlohmann_json/3.11.3
+# BSD-3-Clause. Pulls xtl, xsimd, and nlohmann_json transitively.
+xtensor/0.26.0
 # MIT. Catalog publishedAt 2024-06-30. No catalog CVEs on 2026-10-09.
 magic_enum/0.9.6
 

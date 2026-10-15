@@ -2,6 +2,8 @@
 #include <spdlog/version.h>
 #include <magic_enum.hpp>
 #include <nlohmann/json.hpp>
+#include <xtensor/containers/xarray.hpp>
+#include <xtensor/core/xmath.hpp>
 
 #include <iostream>
 #include <string>
@@ -27,10 +29,12 @@ enum class DemoStatus { Complete };
 
 int main() {
     const std::string status{magic_enum::enum_name(DemoStatus::Complete)};
+    xt::xarray<int> values = {1, 2, 3};
     nlohmann::json body = {
         {"customer", "JFrog Curation demo"},
         {"spdlog", std::to_string(SPDLOG_VER_MAJOR) + "." + std::to_string(SPDLOG_VER_MINOR) + "." + std::to_string(SPDLOG_VER_PATCH)},
         {"message", "JSON processed successfully"},
+        {"xtensor_sum", xt::sum(values)()},
     };
 
 #if defined(DEMO_USE_RAPIDJSON)

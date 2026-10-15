@@ -98,7 +98,7 @@ The demo script leaves your normal Conan configuration unchanged. Its temporary 
 
 | Scenario | Direct application requirements | Audit focus |
 | --- | --- | --- |
-| `baseline` | `spdlog/1.13.0`, `nlohmann_json/3.11.3`, `magic_enum/0.9.6` | Allowed, provided no other policy matches |
+| `baseline` | `spdlog/1.13.0`, `xtensor/0.26.0`, `magic_enum/0.9.6` | Allowed, provided no other policy matches |
 | `immaturity` | Baseline plus `cpp-httplib/0.56.0` | The 88-day policy |
 | `vulnerability` | Baseline plus `rapidjson/1.1.0` | The named-CVE policy |
 | `license` | Baseline plus `cimg/3.3.2` | The license policy |
@@ -116,7 +116,7 @@ cd scenarios/baseline
 conan install . -r "$CONAN_REMOTE_NAME"
 ```
 
-`spdlog/1.13.0` requires `fmt/10.2.1`. The scenario files list spdlog directly and do not list fmt; Conan resolves fmt as a **transitive dependency**. Both packages use header-only options so the reference Mac profile can download binaries from Artifactory without a source build. The fresh-cache baseline downloaded both recipes and packages from `demo2-dev-conan`, and `conan graph info` showed the `spdlog → fmt` dependency edge. The C++ application uses spdlog, so this is a real application dependency.
+The scenario files list `xtensor/0.26.0` directly. It brings in three **transitive dependencies**: `xtl/0.8.0`, `xsimd/13.2.0`, and `nlohmann_json/3.11.3`. The first two were absent from earlier versions of this demo. `spdlog/1.13.0` also brings in `fmt/10.2.1`. The C++ application computes a value with xtensor and logs its JSON result with spdlog, so these are real application dependencies. All four indirect packages have downloadable binaries for the reference Mac profile; the demo uses `--build=never` and a fresh local cache to exercise Artifactory.
 
 If that reports `Cache`, no new package download occurred. Run `../../scripts/demo.sh baseline` to force a fresh local request. Scenario files acquire dependencies; build the C++ application from the project root:
 
