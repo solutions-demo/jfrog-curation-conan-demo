@@ -1,6 +1,6 @@
 # JFrog Curation demo for Conan 2
 
-This C++17 application resolves real Conan packages through an Artifactory Conan virtual repository. JFrog Curation governs the underlying remote. The demo has a passing baseline and three blocking scenarios: immaturity, a named CVE, and a license. The application does not simulate Curation decisions.
+This C++17 application resolves real Conan packages through an Artifactory Conan virtual repository. JFrog Curation governs the underlying remote. The demo has a passing baseline and three policy scenarios: immaturity, a named CVE, and a license. Whether a policy blocks a download depends on the target environment's current Curation configuration. The application does not simulate Curation decisions.
 
 This guide is for an operator installing the demo in **their own JFrog environment**. Replace the example repository keys and URL. Policy IDs and audit events are specific to each instance.
 
@@ -92,7 +92,7 @@ The demo script leaves your normal Conan configuration unchanged. Its temporary 
 ```bash
 ./scripts/demo.sh baseline       # Expected: succeeds
 ./scripts/demo.sh immaturity     # Expected: cpp-httplib/0.56.0 blocked while immature
-./scripts/demo.sh vulnerability  # Expected: rapidjson/1.1.0 blocked by named CVE
+./scripts/demo.sh vulnerability  # Catalog: rapidjson and cpp-httplib CVEs; block requires an active policy
 ./scripts/demo.sh license        # Expected: cimg/3.3.2 blocked by license
 ```
 
@@ -100,8 +100,18 @@ The demo script leaves your normal Conan configuration unchanged. Its temporary 
 | --- | --- | --- |
 | `baseline` | `spdlog/1.13.0`, `xtensor/0.26.0`, `magic_enum/0.9.6` | Allowed, provided no other policy matches |
 | `immaturity` | Baseline plus `cpp-httplib/0.56.0` | The 88-day policy |
-| `vulnerability` | Baseline plus `rapidjson/1.1.0` | The named-CVE policy |
+| `vulnerability` | Baseline plus `rapidjson/1.1.0` and `cpp-httplib/0.18.0` | Catalog CVEs; named policy targets rapidjson |
 | `license` | Baseline plus `cimg/3.3.2` | The license policy |
+
+The JFrog Catalog showed these findings on October 15, 2026:
+
+| Conan package | Scenario | Catalog vulnerability |
+| --- | --- | --- |
+| `rapidjson/1.1.0` | vulnerability | CVE-2024-38517 and CVE-2024-39684 (Medium) |
+| `cpp-httplib/0.18.0` | vulnerability | CVE-2025-46728 (High) |
+| `cimg/3.3.2` | license | CVE-2024-26540 (High) |
+
+The named-CVE Block policy described in step 3 targets `CVE-2024-38517`. The additional Catalog findings make the risk visible but are not evidence that a policy blocks those packages. On October 15, 2026, a fresh-cache vulnerability install through the reference Artifactory virtual downloaded both `rapidjson/1.1.0` and `cpp-httplib/0.18.0` successfully. Check the policy assignment and Downloads audit events in your own environment before claiming a specific block.
 
 Every scenario also tool-requires `cmake/3.30.5`. `scripts/demo.sh` copies Conan authentication and profile data into a temporary home, removes all other client remotes there, and uses fresh package and download caches. It leaves `~/.conan2` untouched and writes logs to `demo-logs/`. A successful run requires a `Downloaded (<remote name>)` line and rejects locally cached dependencies. A policy block makes the script exit nonzero. The script does not clear **Artifactory's** remote cache; the policy setting in step 3 governs packages served from it.
 

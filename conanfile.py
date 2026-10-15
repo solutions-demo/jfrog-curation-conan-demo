@@ -51,7 +51,7 @@ class JfrogCurationDemo(ConanFile):
         toolchain = CMakeToolchain(self)
         toolchain.cache_variables["DEMO_USE_RAPIDJSON"] = scenario == "vulnerability"
         toolchain.cache_variables["DEMO_USE_CIMG"] = scenario == "license"
-        toolchain.cache_variables["DEMO_USE_HTTPLIB"] = scenario == "immaturity"
+        toolchain.cache_variables["DEMO_USE_HTTPLIB"] = scenario in ("immaturity", "vulnerability")
         toolchain.generate()
 
     def build(self):
