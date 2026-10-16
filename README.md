@@ -9,7 +9,7 @@ The project root contains the Conan consumer recipe (`conanfile.py`), CMake appl
 ## 1. Prerequisites
 
 - JFrog Platform with Artifactory and Curation, and permission to create repositories, conditions, and policies. Check the [Conan row in JFrog's support matrix](https://docs.jfrog.com/security/docs/supported-technologies) for minimum self-managed versions.
-- Conan 2, Bash, and a C++17 compiler. The reference run used Conan 2.33.0 and Apple Clang 21 on macOS arm64.
+- Conan 2, Bash, JFrog CLI (`jf`), `jq`, and a C++17 compiler. The reference run used Conan 2.33.0 and Apple Clang 21 on macOS arm64.
 - A default Conan profile. The recipe tool-requires `cmake/3.30.5`; Artifactory must be able to serve a binary for your platform.
 
 The [support matrix](https://docs.jfrog.com/security/docs/supported-technologies) lists Conan Curation service support, but Conan CLI `curation-audit` is “Coming soon” and [Compliant Version Selection](https://docs.jfrog.com/security/docs/compliant-version-selection) does not list Conan. This demo therefore uses policy blocks and Curation **Downloads** audit events. It has no Conan CVS scenario.
@@ -143,7 +143,20 @@ For an allowed variant, pass `-o "*:demo_scenario=<scenario>"` to both `conan in
 
 Open **Application → Curation → Audit Events → Downloads**. Filter by time, Conan package, version, and the underlying **remote repository** key. Match the event's action and policy to the terminal request. Conan can report `Binary package not found` for a blocked binary, so that error alone does not establish the cause. No audit event does not prove approval: check the remote connection, policy scope, cache enforcement, and other applicable repositories.
 
-The [Downloads audit API](https://docs.jfrog.com/security/reference/getauditpackages) is another read-only option. Do not use `jf curation-audit` to validate Conan; JFrog currently lists that CLI integration as [coming soon](https://docs.jfrog.com/security/docs/supported-technologies).
+To investigate a block from the terminal, configure a JFrog CLI server with permission to view Curation policies, then set its ID and the **curated Conan remote** key. These may also be placed in the ignored root `env.local.sh` so the audit script can source them automatically:
+
+```bash
+export JFROG_SERVER_ID=your-configured-jfrog-cli-server-id
+export CONAN_CURATED_REMOTE_REPO=demo-conan-remote
+./scripts/curation-audit.sh                        # Latest Conan blocks on that remote
+./scripts/curation-audit.sh cpp-httplib            # Exact package name
+./scripts/curation-audit.sh cpp-httplib 0.56.0     # Exact package and version
+./scripts/curation-audit.sh --json cimg 3.3.2     # Structured output
+```
+
+The script calls the read-only [Downloads audit API](https://docs.jfrog.com/security/reference/getauditpackages), then fetches the [current definition of each recorded policy](https://docs.jfrog.com/security/reference/getpolicybyid). It prints the event ID and time, package, general reason, policy and condition recorded at the time of the block, plus the policy's **current** rule parameters. Current policy settings may differ from those in effect when an older event occurred. The API defaults to a seven-day window; the script shows up to 20 newest matching events. Audit data is [retained for 30 days](https://docs.jfrog.com/security/docs/curated-packages-audit-events). An empty result is not proof of approval. `CONAN_CURATED_REMOTE_REPO` must be the remote key shown in Curation Downloads events, even when Conan resolves through a virtual repository.
+
+This audits actual download decisions. Do not use `jf curation-audit` to validate Conan; JFrog currently lists that CLI integration as [coming soon](https://docs.jfrog.com/security/docs/supported-technologies).
 
 | Symptom | Check |
 | --- | --- |

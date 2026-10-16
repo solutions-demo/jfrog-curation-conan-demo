@@ -92,7 +92,8 @@ if {
     :
 else
     echo "Install failed. Log: ${LOG}" >&2
-    echo "If Conan reports 'Binary package not found', check Curation Audit Events for a blocked download before concluding the binary is absent." >&2
+    echo "Check recent Curation blocks with: ${ROOT}/scripts/curation-audit.sh" >&2
+    echo "If Conan reports 'Binary package not found', confirm a matching Curation audit event before concluding the binary is absent." >&2
     exit 1
 fi
 
