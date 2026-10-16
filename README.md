@@ -154,6 +154,34 @@ The [Downloads audit API](https://docs.jfrog.com/security/reference/getauditpack
 | Authentication error | Log in again to the selected Artifactory Conan remote in your normal Conan home. |
 | Direct Conan Center request | Inspect `conan remote list` and manual commands; the script removes other remotes from its temporary home. |
 
+## 7. Publish the built binary through the Conan virtual repository
+
+The application binary must be inside a Conan package when publishing to a Conan repository. The `package()` method places `curation_demo` in the package's `bin/` directory. Do not send the executable directly with `jf rt upload`: that would bypass Conan package indexing.
+
+Use your existing authenticated Conan remote pointing to the **virtual** repository. For the reference environment, that remote is `demo2-dev-conan`. The virtual has `demo2-dev-conan-local` as its default deployment repository, so Conan sends the upload through the virtual URL and Artifactory stores it in the local repository.
+
+```bash
+export CONAN_REMOTE_NAME=demo2-dev-conan
+conan remote list  # Check that this alias points to .../artifactory/api/conan/demo2-dev-conan
+./scripts/publish-binary.sh baseline 0.1.2
+conan list 'curation-demo/0.1.2:*' -r "$CONAN_REMOTE_NAME"
+```
+
+Choose a new package version for each run. The script runs `conan build` against the virtual remote, verifies the local executable, uses `conan export-pkg` to package **that built binary**, and then runs `conan upload` against the same virtual remote. It never puts a credential in the project. A blocked Curation scenario fails during the build and is not uploaded. Set `BUILD_TYPE=Debug` only when the matching Conan profile and dependencies are available.
+
+The recipe and binary package are visible through the virtual; Artifactory stores them in its configured default deployment repository. Xray indexing is enabled on `demo2-dev-conan-local` in the reference environment. On October 12, 2026, `curation-demo/0.1.1` was uploaded through `demo2-dev-conan`, returned one binary from `conan list -r demo2-dev-conan`, and reached Xray SCA status `DONE`. Its Xray dependency graph contained only `curation-demo/0.1.1`, despite the published Conan package declaring `fmt/10.2.1`, `nlohmann_json/3.11.3`, and `magic_enum/0.9.6`. Therefore an Xray SBOM export for that package does not represent the full dependency graph. Scan completion alone is not proof of dependency detection. [Virtual deployment](https://docs.jfrog.com/artifactory/docs/deploy-artifacts), [Xray Conan scanning](https://docs.jfrog.com/security/docs/xray-conan), [SBOM export](https://docs.jfrog.com/security/docs/sbom-export).
+
+To obtain a populated CycloneDX 1.6 SBOM for the **published Conan package**, resolve that version through the same virtual remote and use Conan's built-in SBOM deployer:
+
+```bash
+./scripts/export-sbom.sh 0.1.1
+# Output: build/sbom/curation-demo-0.1.1.cdx.json
+```
+
+The script reads the package's recorded dependency revisions from the virtual repository and pins them for SBOM generation. This matters when a dependency recipe is updated without changing its version: resolving the newer revision would produce a different Conan package ID and fail to match the published binary. The script expects one published binary per version and build type, and checks that the SBOM contains the requested application and at least one dependency. The verified `0.1.1` SBOM includes the application plus the three libraries and their dependency relationships. This is a Conan-generated SBOM, not an Xray scan result: it does not add those dependencies to Xray's package scan or provide Xray vulnerability findings. JFrog documents C/C++ dependency scanning in Xray through a separately published `cpp` build-info with each dependency's ID and SHA1; that build must be indexed and scanned before relying on its Xray SBOM. [Conan SBOM deployer](https://docs.conan.io/2/reference/extensions/deployers.html), [Conan lockfiles](https://docs.conan.io/2/tutorial/versioning/lockfiles.html), [JFrog Conan and C/C++ Xray support](https://docs.jfrog.com/artifactory/docs/conan-repositories).
+
+A previous experiment also placed the standalone executable in a Generic repository. Xray returned `NOT_SUPPORTED` for SCA on that raw file. The Conan package publication above is the workflow for this demo.
+
 ## Reference-instance observations
 
 On October 9, 2026, the original environment used virtual `demo2-dev-conan` and a curated remote pointing to `https://center2.conan.io`. Its fresh-cache baseline succeeded. The immaturity scenario was blocked on `cpp-httplib/0.56.0` in Downloads audit event `497637` by `Immaturity88` and a global immature-package policy. The license scenario was blocked on `cimg/3.3.2` by `CECILL20` in event `497598`. These names and IDs are **not installation values** for another environment. The named-CVE scenario has a Catalog finding but no verified policy block in the reference record; validate its block in your own audit before claiming it.

@@ -1,6 +1,7 @@
 from conan import ConanFile
 from conan.errors import ConanException
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
+from conan.tools.files import copy
 import os
 
 
@@ -8,6 +9,9 @@ class JfrogCurationDemo(ConanFile):
     """Application consumer. JFrog Curation runs in Artifactory, not in this recipe."""
 
     settings = "os", "compiler", "build_type", "arch"
+    package_type = "application"
+    exports = "scenarios/*/conanfile.txt"
+    exports_sources = "CMakeLists.txt", "src/*"
     options = {
         "demo_scenario": ["baseline", "immaturity", "vulnerability", "license"],
     }
@@ -58,3 +62,8 @@ class JfrogCurationDemo(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
+
+    def package(self):
+        executable = "curation_demo.exe" if str(self.settings.os) == "Windows" else "curation_demo"
+        copy(self, executable, src=self.build_folder,
+             dst=os.path.join(self.package_folder, "bin"), keep_path=False)
